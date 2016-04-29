@@ -21,7 +21,7 @@ public class XMLParser {
             case "object":
                 Object [] params = readParams(node);
                 Class c = getClass(node);
-                return new Object();//TODO Допилить создание через рефлексию
+                return ReflexiveFactory.createObject(c,params);
             default: return null;
         }
     }
