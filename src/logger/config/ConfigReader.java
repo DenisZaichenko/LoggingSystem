@@ -2,24 +2,16 @@ package logger.config;
 
 import logger.LogManager;
 import logger.Logger;
+import logger.filters.Filter;
+import logger.handlers.Handler;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.io.File;
-import java.io.IOException;
 
 public class ConfigReader {
-    private static final String XSD_FILE = "configSchema.xsd";
     private final String XML_FILE;
     private final LogManager logManager;
     private Document document;
@@ -35,8 +27,7 @@ public class ConfigReader {
 
     private boolean loadConfig(){
         try {
-            if (isValidConfig()) init();
-            else return false;
+            init();
         }
         catch (Exception ex){
             ex.printStackTrace();
@@ -44,18 +35,6 @@ public class ConfigReader {
         }
         readElements();
         return true;
-    }
-
-    private boolean isValidConfig() throws IOException {
-        try {
-            SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = sf.newSchema(new File(XSD_FILE));
-            schema.newValidator().validate(new StreamSource(XML_FILE));
-            return true;
-        }
-        catch (SAXException ex){
-            return false;
-        }
     }
 
     private void init() throws Exception {
@@ -83,18 +62,53 @@ public class ConfigReader {
     }
 
     private void readHandler(Element handlerNode) {
-        throw new UnsupportedOperationException("Not supported yet");
+        try {
+            String name = XMLParser.getName(handlerNode);
+            Object[] params = XMLParser.readParams(handlerNode);
+            Class handlerClass = XMLParser.getClass(handlerNode);
+            Handler handler = ReflexiveFactory.<Handler>createObject(handlerClass, params);
+            logManager.addHandler(name, handler);
+        }
+        catch (Exception ex){
+            System.err.println("Can not read handler " + XMLParser.getName(handlerNode));
+            System.err.println("Cause: ");
+            ex.printStackTrace();
+        }
     }
 
     private void readFilter(Element filterNode) {
-        throw new UnsupportedOperationException("Not supported yet");
+        try {
+        String name = XMLParser.getName(filterNode);
+        Object[] params = XMLParser.readParams(filterNode);
+        Class filterClass = XMLParser.getClass(filterNode);
+        Filter filter = ReflexiveFactory.<Filter>createObject(filterClass, params);
+        logManager.addFilter(name, filter);
+        }
+        catch (Exception ex){
+            System.err.println("Can not read filter: " + XMLParser.getName(filterNode));
+            System.err.println("Cause: ");
+            ex.printStackTrace();
+        }
     }
 
     private void readLogger(Logger logger, Element node){
-        throw new UnsupportedOperationException("Not supported yet");
+        NodeList handlerNameList = node.getElementsByTagName("handlerName");
+        for (int i = 0; i < handlerNameList.getLength(); i++) {
+            String handlerName = handlerNameList.item(i).getTextContent();
+            Handler handler = logManager.getHandler(handlerName);
+            logger.addHandler(handler);
+        }
+        Node filterNode = node.getElementsByTagName("filterName").item(0);
+        if (filterNode != null) {
+            String filterName = filterNode.getTextContent();
+            Filter filter = logManager.getFilter(filterName);
+            logger.setFilter(filter);
+        }
     }
 
     private void readLogger(Element node){
-        throw new UnsupportedOperationException("Not supported yet");
+        String name = XMLParser.getName(node);
+        Logger logger = logManager.getLogger(name);
+        readLogger(logger, node);
     }
 }
