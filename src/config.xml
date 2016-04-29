@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<config>
+
+    <rootLogger>
+        <handlerName>HTML</handlerName>
+    </rootLogger>
+    <logger name="com">
+        <filterName>myFilter</filterName>
+        <handlerName>FileHandler</handlerName>
+    </logger>
+    <logger name="com.denis">
+        <handlerName>ConsoleHandler</handlerName>
+    </logger>
+
+    <filter name="myFilter" class="logging.filters.FilterByLevel">
+        <string>INFO</string>
+    </filter>
+
+    <handler class="logging.handlers.ConsoleHandler" name="ConsoleHandler"/>
+    <handler class="logging.handlers.FileHandler" name="FileHandler">
+        <string>log.txt</string>
+    </handler>
+    <handler class="logging.handlers.HTMLHandler" name="HTML">
+        <string>log.html</string>
+        <string>/html/body</string>
+    </handler>
+</config>

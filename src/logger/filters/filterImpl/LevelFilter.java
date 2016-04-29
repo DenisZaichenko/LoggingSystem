@@ -5,15 +5,9 @@ import logger.Message;
 import logger.filters.Filter;
 
 public class LevelFilter  implements Filter{
-    public LevelFilter(Level min, Level max) {
-        setMax(max);
+    public LevelFilter(Level min) {
         setMin(min);
     }
-
-    public LevelFilter(String min, String max){
-        this(Level.valueOf(min), Level.valueOf(max));
-    }
-
     public Level getMin() {
         return min;
     }
@@ -22,20 +16,12 @@ public class LevelFilter  implements Filter{
         this.min = min;
     }
 
-    public Level getMax() {
-        return max;
-    }
 
-    public void setMax(Level max) {
-        this.max = max;
-    }
-
-    private Level min, max;
+    private Level min;
 
     @Override
     public boolean check(Message msg) {
         if (min == null || min.compareTo(msg.getSeverity()) <= 0)
-            if (max == null || max.compareTo(msg.getSeverity()) >= 0)
                 return  true;
 
         return false;
